@@ -2,55 +2,51 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>半自動遊戲 AI 監控 + 大獎警報</title>
+<title>浮動遊戲監控 AI + 大獎警報</title>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.6.0/dist/tf.min.js"></script>
 <style>
 body { font-family: Arial; margin: 20px; }
-#canvasPreview { border: 1px solid #ccc; }
 #status { font-weight: bold; margin-top: 10px; }
 .bigwin { color: red; font-size: 1.5em; font-weight: bold; }
+#videoPreview { border:1px solid #ccc; width:300px; height:300px; }
 </style>
 </head>
 <body>
-<h2>遊戲監控 AI（半自動）</h2>
+<h2>浮動遊戲 AI 監控 + 大獎警報</h2>
+<p>請先開啟遊戲分頁，然後按下「開始捕獲」允許抓取畫面。</p>
 
-<p>請自行打開遊戲頁面並截圖或拖圖到下方 Canvas</p>
-<input type="file" id="uploadImg" accept="image/*"><br>
-<canvas id="canvasPreview" width="300" height="300"></canvas>
+<button id="startCapture">開始捕獲遊戲畫面</button>
+<video id="videoPreview" autoplay muted></video>
 <div id="status">狀態：尚未開始</div>
 
-<button id="startMonitor">開始監控</button>
-
 <script>
-let selectedArea = {x:0, y:0, w:300, h:300};
 let monitoring = false;
-let img = new Image();
-const canvas = document.getElementById("canvasPreview");
-const ctx = canvas.getContext("2d");
+let stream = null;
 
-document.getElementById("uploadImg").addEventListener("change", (e)=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  img.src = URL.createObjectURL(file);
-  img.onload = ()=> ctx.drawImage(img,0,0,canvas.width,canvas.height);
+// 開始抓取螢幕（遊戲分頁）
+document.getElementById("startCapture").addEventListener("click", async ()=>{
+  try{
+    stream = await navigator.mediaDevices.getDisplayMedia({video:true});
+    const video = document.getElementById("videoPreview");
+    video.srcObject = stream;
+    monitoring = true;
+    document.getElementById("status").innerText = "狀態：監控中...";
+    monitorLoop();
+  }catch(e){
+    alert("必須允許螢幕捕獲才能監控");
+    console.error(e);
+  }
 });
 
-document.getElementById("startMonitor").addEventListener("click", ()=>{
-  if(!img.src) return alert("請先上傳截圖");
-  monitoring = true;
-  document.getElementById("status").innerText = "狀態：監控中...";
-  monitorLoop();
-});
-
-// 模擬特徵向量
-function extractFeatures() {
-  // 真實可以用 Canvas pixel 分析
+// 模擬特徵提取
+function extractFeaturesFromFrame(){
+  // 真實可用 Canvas 分析 pixels
   return [
     Math.random(), // 空轉比例
     Math.random(), // 平均動畫時間
     Math.random(), // 特殊符號
-    Math.random(), // 亮度
-    Math.random()  // 節奏
+    Math.random(), // 畫面亮度
+    Math.random()  // 節奏穩定度
   ];
 }
 
@@ -67,6 +63,8 @@ function checkBigWin(features){
   const score = 0.5*features[1] + 0.4*features[2] + 0.1*features[3];
   if(score>0.7){
     document.getElementById("status").innerHTML = '<span class="bigwin">🔥 大獎警報！ 🔥</span>';
+    // 可選加聲音
+    // new Audio('alert.mp3').play();
     return true;
   }
   return false;
@@ -75,7 +73,7 @@ function checkBigWin(features){
 // 主循環
 function monitorLoop(){
   if(!monitoring) return;
-  const features = extractFeatures();
+  const features = extractFeaturesFromFrame();
   checkBigWin(features);
   const state = predictState(features);
   document.getElementById("status").innerText += ` 偏向狀態：${state}`;
