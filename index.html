@@ -1,11 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>777 穩定版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>777 鑑定系統</title>
+    <style>
+        body { background-color: #000; color: #0f0; text-align: center; padding: 20px; font-family: sans-serif; }
+        .box { border: 2px solid #0f0; border-radius: 15px; padding: 30px; margin-top: 50px; box-shadow: 0 0 15px #0f0; }
+        #res { font-size: 32px; color: #fff; margin: 30px 0; font-weight: bold; min-height: 40px; }
+        .btn { background-color: #0f0; color: #000; padding: 20px; font-size: 22px; font-weight: bold; border-radius: 10px; width: 100%; border: none; cursor: pointer; }
+    </style>
 </head>
-<body style="background:black; color:lime; text-align:center; padding:50px;">
-    <h1>💎 777 系統已修復 💎</h1>
-    <p>如果畫面不再跳動，代表成功了！</p>
+<body>
+    <div class="box">
+        <h1>💎 777 AI 鑑定系統 💎</h1>
+        <div id="res">等待點擊</div>
+        <button class="btn" onclick="start()">開始預測大獎</button>
+    </div>
+    <script>
+        function start() {
+            let n = [];
+            while(n.length < 6) {
+                let r = Math.floor(Math.random() * 49) + 1;
+                if(!n.includes(r)) n.push(r);
+            }
+            document.getElementById('res').innerText = n.sort((a,b)=>a-b).join(" - ");
+        }
+    </script>
 </body>
 </html>
