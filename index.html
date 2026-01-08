@@ -1,49 +1,91 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>777 AI 鑑定系統</title>
-    <style>
-        body { background: #000; color: #0f0; text-align: center; padding: 20px; font-family: sans-serif; }
-        .box { border: 2px solid #0f0; border-radius: 15px; padding: 20px; margin-top: 20px; box-shadow: 0 0 15px #0f0; }
-        input { width: 85%; padding: 15px; font-size: 18px; margin: 15px 0; border-radius: 8px; border: 1px solid #0f0; background: #111; color: #fff; }
-        #res { font-size: 26px; color: #ff0; margin: 20px 0; font-weight: bold; min-height: 60px; line-height: 1.5; }
-        .btn { background: #0f0; color: #000; padding: 20px; font-size: 22px; font-weight: bold; border-radius: 10px; width: 100%; border: none; cursor: pointer; }
-        .hint { color: #888; font-size: 14px; margin-top: 10px; }
-    </style>
+  <meta charset="UTF-8">
+  <title>半自動遊戲監控 AI</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.6.0/dist/tf.min.js"></script>
+  <style>
+    body { font-family: Arial; margin: 20px; }
+    input, button { margin: 5px 0; }
+    #canvasPreview { border: 1px solid #ccc; }
+    #status { font-weight: bold; margin-top: 10px; }
+  </style>
 </head>
 <body>
-    <div class="box">
-        <h1>💎 777 AI 數據鑑定 💎</h1>
-        <p>請輸入機台目前得分率 (%)</p>
-        <input type="number" id="rate" placeholder="例如：80" inputmode="numeric">
-        
-        <div id="res">等待輸入數據...</div>
-        
-        <button class="btn" onclick="analyze()">開始 AI 週期判斷</button>
-        <p class="hint">註：由 AI 根據得分率計算大獎機率</p>
-    </div>
+  <h2>遊戲畫面 AI 監控</h2>
+  <label>遊戲網址：<input type="text" id="gameUrl" size="50"></label><br>
+  <button id="openGame">開啟遊戲分頁</button>
+  <button id="startMonitor">開始監控</button>
+  <p>點擊轉輪區域進行框選</p>
+  <canvas id="canvasPreview" width="300" height="300"></canvas>
+  <div id="status">狀態：尚未開始</div>
 
-    <script>
-        function analyze() {
-            let r = document.getElementById('rate').value;
-            let s = document.getElementById('res');
-            if(!r) { alert('請先輸入得分率'); return; }
-            
-            s.style.color = "#0f0";
-            s.innerText = "AI 大數據分析中...";
-            
-            setTimeout(() => {
-                let score = parseInt(r);
-                if (score < 75) {
-                    s.innerHTML = "<span style='color:#ff4444;'>❌ 咬分期 (High Risk)</span><br>機台回收中，建議觀望！";
-                } else if (score >= 75 && score < 92) {
-                    s.innerHTML = "<span style='color:#ffa500;'>⚖️ 平穩過渡期</span><br>波段整理中，注意轉折。";
-                } else {
-                    s.innerHTML = "<span style='color:#00ff00;'>💰 吐分大獎期 (Warning)</span><br>得分率達標，大獎機率提升！";
-                }
-            }, 1200);
-        }
-    </script>
+  <script>
+    let selectedArea = null;
+    let monitoring = false;
+    let videoFrame = null;
+
+    // AI 模型 placeholder
+    let model;
+
+    // 框選轉輪區域
+    const canvas = document.getElementById("canvasPreview");
+    const ctx = canvas.getContext("2d");
+    canvas.addEventListener("click", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const size = 100; // 固定框大小，可自行調整
+      selectedArea = { x: x - size/2, y: y - size/2, w: size, h: size };
+      ctx.strokeStyle = "red";
+      ctx.lineWidth = 2;
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.strokeRect(selectedArea.x, selectedArea.y, selectedArea.w, selectedArea.h);
+    });
+
+    document.getElementById("openGame").addEventListener("click", () => {
+      const url = document.getElementById("gameUrl").value;
+      if(!url) return alert("請輸入網址");
+      window.open(url, "_blank");
+    });
+
+    // 監控主流程
+    document.getElementById("startMonitor").addEventListener("click", () => {
+      if(!selectedArea) return alert("請先框選轉輪區域");
+      monitoring = true;
+      document.getElementById("status").innerText = "狀態：監控中...";
+      monitorLoop();
+    });
+
+    async function monitorLoop() {
+      if(!monitoring) return;
+      // TODO: 這裡用實際畫面或 iframe 截圖，這裡用 placeholder
+      const featureVector = getFakeFeatureVector(); // 模擬抓到特徵
+      const result = await predictState(featureVector);
+      document.getElementById("status").innerText = `狀態偏向：${result}`;
+      setTimeout(monitorLoop, 1000); // 每秒判斷一次
+    }
+
+    // 模擬特徵向量
+    function getFakeFeatureVector() {
+      return tf.tensor2d([[
+        Math.random(), // 空轉比例
+        Math.random(), // 平均動畫時間
+        Math.random(), // 特殊符號頻率
+        Math.random(), // 畫面亮度
+        Math.random()  // 節奏穩定度
+      ]]);
+    }
+
+    // 模擬 AI 判斷
+    async function predictState(features) {
+      // 這裡用簡單規則，真實可換 tfjs 模型
+      const values = await features.data();
+      const score = values[0]*0.4 + (1-values[1])*0.3 + (1-values[2])*0.2 + (1-values[3])*0.1;
+      if(score > 0.7) return "偏吸分";
+      else if(score > 0.4) return "中性";
+      else return "偏吐分";
+    }
+  </script>
 </body>
 </html>
