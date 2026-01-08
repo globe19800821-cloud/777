@@ -1,91 +1,86 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <title>半自動遊戲監控 AI</title>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.6.0/dist/tf.min.js"></script>
-  <style>
-    body { font-family: Arial; margin: 20px; }
-    input, button { margin: 5px 0; }
-    #canvasPreview { border: 1px solid #ccc; }
-    #status { font-weight: bold; margin-top: 10px; }
-  </style>
+<meta charset="UTF-8">
+<title>半自動遊戲 AI 監控 + 大獎警報</title>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.6.0/dist/tf.min.js"></script>
+<style>
+body { font-family: Arial; margin: 20px; }
+#canvasPreview { border: 1px solid #ccc; }
+#status { font-weight: bold; margin-top: 10px; }
+.bigwin { color: red; font-size: 1.5em; font-weight: bold; }
+</style>
 </head>
 <body>
-  <h2>遊戲畫面 AI 監控</h2>
-  <label>遊戲網址：<input type="text" id="gameUrl" size="50"></label><br>
-  <button id="openGame">開啟遊戲分頁</button>
-  <button id="startMonitor">開始監控</button>
-  <p>點擊轉輪區域進行框選</p>
-  <canvas id="canvasPreview" width="300" height="300"></canvas>
-  <div id="status">狀態：尚未開始</div>
+<h2>遊戲監控 AI（半自動）</h2>
 
-  <script>
-    let selectedArea = null;
-    let monitoring = false;
-    let videoFrame = null;
+<p>請自行打開遊戲頁面並截圖或拖圖到下方 Canvas</p>
+<input type="file" id="uploadImg" accept="image/*"><br>
+<canvas id="canvasPreview" width="300" height="300"></canvas>
+<div id="status">狀態：尚未開始</div>
 
-    // AI 模型 placeholder
-    let model;
+<button id="startMonitor">開始監控</button>
 
-    // 框選轉輪區域
-    const canvas = document.getElementById("canvasPreview");
-    const ctx = canvas.getContext("2d");
-    canvas.addEventListener("click", (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      const size = 100; // 固定框大小，可自行調整
-      selectedArea = { x: x - size/2, y: y - size/2, w: size, h: size };
-      ctx.strokeStyle = "red";
-      ctx.lineWidth = 2;
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      ctx.strokeRect(selectedArea.x, selectedArea.y, selectedArea.w, selectedArea.h);
-    });
+<script>
+let selectedArea = {x:0, y:0, w:300, h:300};
+let monitoring = false;
+let img = new Image();
+const canvas = document.getElementById("canvasPreview");
+const ctx = canvas.getContext("2d");
 
-    document.getElementById("openGame").addEventListener("click", () => {
-      const url = document.getElementById("gameUrl").value;
-      if(!url) return alert("請輸入網址");
-      window.open(url, "_blank");
-    });
+document.getElementById("uploadImg").addEventListener("change", (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  img.src = URL.createObjectURL(file);
+  img.onload = ()=> ctx.drawImage(img,0,0,canvas.width,canvas.height);
+});
 
-    // 監控主流程
-    document.getElementById("startMonitor").addEventListener("click", () => {
-      if(!selectedArea) return alert("請先框選轉輪區域");
-      monitoring = true;
-      document.getElementById("status").innerText = "狀態：監控中...";
-      monitorLoop();
-    });
+document.getElementById("startMonitor").addEventListener("click", ()=>{
+  if(!img.src) return alert("請先上傳截圖");
+  monitoring = true;
+  document.getElementById("status").innerText = "狀態：監控中...";
+  monitorLoop();
+});
 
-    async function monitorLoop() {
-      if(!monitoring) return;
-      // TODO: 這裡用實際畫面或 iframe 截圖，這裡用 placeholder
-      const featureVector = getFakeFeatureVector(); // 模擬抓到特徵
-      const result = await predictState(featureVector);
-      document.getElementById("status").innerText = `狀態偏向：${result}`;
-      setTimeout(monitorLoop, 1000); // 每秒判斷一次
-    }
+// 模擬特徵向量
+function extractFeatures() {
+  // 真實可以用 Canvas pixel 分析
+  return [
+    Math.random(), // 空轉比例
+    Math.random(), // 平均動畫時間
+    Math.random(), // 特殊符號
+    Math.random(), // 亮度
+    Math.random()  // 節奏
+  ];
+}
 
-    // 模擬特徵向量
-    function getFakeFeatureVector() {
-      return tf.tensor2d([[
-        Math.random(), // 空轉比例
-        Math.random(), // 平均動畫時間
-        Math.random(), // 特殊符號頻率
-        Math.random(), // 畫面亮度
-        Math.random()  // 節奏穩定度
-      ]]);
-    }
+// AI 判斷偏吸/偏吐
+function predictState(features){
+  const score = features[0]*0.4 + (1-features[1])*0.3 + (1-features[2])*0.2 + (1-features[3])*0.1;
+  if(score>0.7) return "偏吸分";
+  else if(score>0.4) return "中性";
+  else return "偏吐分";
+}
 
-    // 模擬 AI 判斷
-    async function predictState(features) {
-      // 這裡用簡單規則，真實可換 tfjs 模型
-      const values = await features.data();
-      const score = values[0]*0.4 + (1-values[1])*0.3 + (1-values[2])*0.2 + (1-values[3])*0.1;
-      if(score > 0.7) return "偏吸分";
-      else if(score > 0.4) return "中性";
-      else return "偏吐分";
-    }
-  </script>
+// 大獎警報
+function checkBigWin(features){
+  const score = 0.5*features[1] + 0.4*features[2] + 0.1*features[3];
+  if(score>0.7){
+    document.getElementById("status").innerHTML = '<span class="bigwin">🔥 大獎警報！ 🔥</span>';
+    return true;
+  }
+  return false;
+}
+
+// 主循環
+function monitorLoop(){
+  if(!monitoring) return;
+  const features = extractFeatures();
+  checkBigWin(features);
+  const state = predictState(features);
+  document.getElementById("status").innerText += ` 偏向狀態：${state}`;
+  setTimeout(monitorLoop,1000); // 每秒更新一次
+}
+</script>
 </body>
 </html>
