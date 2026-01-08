@@ -5,9 +5,9 @@
     <title>777 穩定版</title>
     <style>
         body { background-color: #000; color: #0f0; text-align: center; padding: 20px; font-family: sans-serif; }
-        .box { border: 2px solid #0f0; border-radius: 15px; padding: 30px; margin-top: 50px; box-shadow: 0 0 15px #0f0; }
+        .box { border: 2px solid #0f0; border-radius: 15px; padding: 30px; margin-top: 50px; }
         #res { font-size: 32px; color: #fff; margin: 30px 0; font-weight: bold; }
-        .btn { background-color: #0f0; color: #000; padding: 20px; font-size: 22px; font-weight: bold; border-radius: 10px; width: 100%; border: none; cursor: pointer; }
+        .btn { background-color: #0f0; color: #000; padding: 20px; font-size: 22px; font-weight: bold; border-radius: 10px; width: 100%; border: none; }
     </style>
 </head>
 <body>
@@ -21,7 +21,7 @@
             let n = [];
             while(n.length < 6) {
                 let r = Math.floor(Math.random() * 49) + 1;
-                if(!n.includes(r)) n.push(r);
+                if(!n.includes(r)) { n.push(r); }
             }
             document.getElementById('res').innerText = n.sort((a,b)=>a-b).join(" - ");
         }
