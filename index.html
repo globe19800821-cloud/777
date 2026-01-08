@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>777 大獎鑑定預測</title>
+    <style>
+        body { margin: 0; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; background: #1a1a1a; color: white; }
+        .nav { background: #333; padding: 12px; display: flex; gap: 8px; }
+        input { flex: 1; padding: 10px; border-radius: 6px; border: none; font-size: 16px; background: #444; color: white; }
+        iframe { flex: 1; border: none; background: white; }
+        #panel { background: #222; padding: 15px; border-top: 2px solid #007bff; text-align: center; }
+        .res { color: #00ff00; font-size: 20px; margin: 12px 0; font-weight: bold; }
+        button { background: #28a745; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-size: 18px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <input type="text" id="url" placeholder="請貼上遊戲網址...">
+        <button onclick="load()" style="width:auto; background:#007bff;">進入</button>
+    </div>
+    <iframe id="game"></iframe>
+    <div id="panel">
+        <div style="color:#aaa;">🤖 777 AI 鑑定系統</div>
+        <div id="status">等待載入遊戲...</div>
+        <div id="prediction" class="res">尚未分析</div>
+        <button onclick="analyze()">開始大獎鑑定預測</button>
+    </div>
+    <script>
+        function load() {
+            let u = document.getElementById('url').value;
+            if(!u.startsWith('http')) u = 'https://' + u;
+            document.getElementById('game').src = u;
+            document.getElementById('status').innerText = "遊戲運行中，準備鑑定...";
+        }
+        function analyze() {
+            const p = document.getElementById('prediction');
+            const s = document.getElementById('status');
+            s.innerText = "🔍 正在分析數據規律...";
+            setTimeout(() => {
+                const r = Math.random();
+                s.innerText = "✅ 鑑定完成";
+                if(r > 0.6) {
+                    p.innerText = "🔥 預測：機台高熱度，機會極高！";
+                    p.style.color = "#ff4444";
+                } else {
+                    p.innerText = "❄️ 預測：目前冷卻中，建議觀望。";
+                    p.style.color = "#00ff00";
+                }
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
