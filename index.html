@@ -2,28 +2,30 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>浮動遊戲監控 AI + 大獎警報</title>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.6.0/dist/tf.min.js"></script>
+<title>實時浮動遊戲 AI 監控</title>
 <style>
 body { font-family: Arial; margin: 20px; }
 #status { font-weight: bold; margin-top: 10px; }
 .bigwin { color: red; font-size: 1.5em; font-weight: bold; }
-#videoPreview { border:1px solid #ccc; width:300px; height:300px; }
+#videoPreview { border:1px solid #ccc; width:480px; height:270px; }
+#trend { margin-top:10px; }
 </style>
 </head>
 <body>
 <h2>浮動遊戲 AI 監控 + 大獎警報</h2>
-<p>請先開啟遊戲分頁，然後按下「開始捕獲」允許抓取畫面。</p>
+<p>請開啟遊戲分頁，然後按「開始監控」允許抓取畫面。</p>
 
-<button id="startCapture">開始捕獲遊戲畫面</button>
+<button id="startCapture">開始監控</button><br>
 <video id="videoPreview" autoplay muted></video>
 <div id="status">狀態：尚未開始</div>
+<div id="trend"></div>
 
 <script>
 let monitoring = false;
 let stream = null;
+let history = []; // 紀錄每次特徵分析
 
-// 開始抓取螢幕（遊戲分頁）
+// 開始捕獲螢幕
 document.getElementById("startCapture").addEventListener("click", async ()=>{
   try{
     stream = await navigator.mediaDevices.getDisplayMedia({video:true});
@@ -40,13 +42,13 @@ document.getElementById("startCapture").addEventListener("click", async ()=>{
 
 // 模擬特徵提取
 function extractFeaturesFromFrame(){
-  // 真實可用 Canvas 分析 pixels
+  // 真實版本可以用 Canvas 分析 pixels
   return [
     Math.random(), // 空轉比例
     Math.random(), // 平均動畫時間
     Math.random(), // 特殊符號
     Math.random(), // 畫面亮度
-    Math.random()  // 節奏穩定度
+    Math.random()  // 節奏
   ];
 }
 
@@ -74,7 +76,22 @@ function checkBigWin(features){
 function monitorLoop(){
   if(!monitoring) return;
   const features = extractFeaturesFromFrame();
+  history.push(features);
+  if(history.length>10) history.shift(); // 保持最近10筆
   checkBigWin(features);
+  const state = predictState(features);
+  document.getElementById("status").innerText += ` 偏向狀態：${state}`;
+
+  // 顯示簡單趨勢
+  let trendText = "最近趨勢：";
+  history.forEach((f,i)=>{ trendText += `[${i+1}:${predictState(f)}] `; });
+  document.getElementById("trend").innerText = trendText;
+
+  setTimeout(monitorLoop,1000); // 每秒更新一次
+}
+</script>
+</body>
+</html>  checkBigWin(features);
   const state = predictState(features);
   document.getElementById("status").innerText += ` 偏向狀態：${state}`;
   setTimeout(monitorLoop,1000); // 每秒更新一次
