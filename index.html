@@ -2,28 +2,47 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>777 鑑定系統</title>
+    <title>777 AI 鑑定系統</title>
     <style>
-        body { background-color: #000; color: #0f0; text-align: center; padding: 20px; font-family: sans-serif; }
-        .box { border: 2px solid #0f0; border-radius: 15px; padding: 30px; margin-top: 50px; box-shadow: 0 0 15px #0f0; }
-        #res { font-size: 32px; color: #fff; margin: 30px 0; font-weight: bold; min-height: 40px; }
-        .btn { background-color: #0f0; color: #000; padding: 20px; font-size: 22px; font-weight: bold; border-radius: 10px; width: 100%; border: none; cursor: pointer; }
+        body { background: #000; color: #0f0; text-align: center; padding: 20px; font-family: sans-serif; }
+        .box { border: 2px solid #0f0; border-radius: 15px; padding: 20px; margin-top: 20px; box-shadow: 0 0 15px #0f0; }
+        input { width: 85%; padding: 15px; font-size: 18px; margin: 15px 0; border-radius: 8px; border: 1px solid #0f0; background: #111; color: #fff; }
+        #res { font-size: 26px; color: #ff0; margin: 20px 0; font-weight: bold; min-height: 60px; line-height: 1.5; }
+        .btn { background: #0f0; color: #000; padding: 20px; font-size: 22px; font-weight: bold; border-radius: 10px; width: 100%; border: none; cursor: pointer; }
+        .hint { color: #888; font-size: 14px; margin-top: 10px; }
     </style>
 </head>
 <body>
     <div class="box">
-        <h1>💎 777 AI 鑑定系統 💎</h1>
-        <div id="res">等待點擊</div>
-        <button class="btn" onclick="start()">開始預測大獎</button>
+        <h1>💎 777 AI 數據鑑定 💎</h1>
+        <p>請輸入機台目前得分率 (%)</p>
+        <input type="number" id="rate" placeholder="例如：80" inputmode="numeric">
+        
+        <div id="res">等待輸入數據...</div>
+        
+        <button class="btn" onclick="analyze()">開始 AI 週期判斷</button>
+        <p class="hint">註：由 AI 根據得分率計算大獎機率</p>
     </div>
+
     <script>
-        function start() {
-            let n = [];
-            while(n.length < 6) {
-                let r = Math.floor(Math.random() * 49) + 1;
-                if(!n.includes(r)) n.push(r);
-            }
-            document.getElementById('res').innerText = n.sort((a,b)=>a-b).join(" - ");
+        function analyze() {
+            let r = document.getElementById('rate').value;
+            let s = document.getElementById('res');
+            if(!r) { alert('請先輸入得分率'); return; }
+            
+            s.style.color = "#0f0";
+            s.innerText = "AI 大數據分析中...";
+            
+            setTimeout(() => {
+                let score = parseInt(r);
+                if (score < 75) {
+                    s.innerHTML = "<span style='color:#ff4444;'>❌ 咬分期 (High Risk)</span><br>機台回收中，建議觀望！";
+                } else if (score >= 75 && score < 92) {
+                    s.innerHTML = "<span style='color:#ffa500;'>⚖️ 平穩過渡期</span><br>波段整理中，注意轉折。";
+                } else {
+                    s.innerHTML = "<span style='color:#00ff00;'>💰 吐分大獎期 (Warning)</span><br>得分率達標，大獎機率提升！";
+                }
+            }, 1200);
         }
     </script>
 </body>
